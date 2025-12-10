@@ -75,9 +75,7 @@ def main():
         "pain_level": float(predictions[0][2]),
     }
 
-    recommendations = recommender.generate_recommendations(
-        current_state, prediction_dict
-    )
+    recommendations = recommender.generate_recommendations(current_state, prediction_dict)
 
     print(f"\n      Current State:")
     print(f"      - Cycle Phase: {current_state['cycle_phase']}")

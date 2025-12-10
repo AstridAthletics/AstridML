@@ -3,7 +3,7 @@
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
-from typing import Optional, Tuple
+from typing import Optional
 
 
 class SyntheticDataGenerator:
@@ -31,20 +31,19 @@ class SyntheticDataGenerator:
         """
         self.rng = np.random.default_rng(seed)
 
-    def _get_cycle_phase(self, day: int) -> str:
+    def _get_cycle_phase(self, cycle_day: int) -> str:
         """
         Determine menstrual cycle phase for a given cycle day.
 
-        Maps a sequential day number to the corresponding menstrual cycle phase
-        based on a typical 28-day cycle. The cycle automatically wraps around
-        after 28 days.
+        Maps a cycle day (1-28) to the corresponding menstrual cycle phase
+        based on a typical 28-day cycle. Automatically wraps cycle days
+        outside the 1-28 range.
 
         Parameters
         ----------
-        day : int
-            Sequential day number (0-indexed). Values larger than 28 will wrap
-            around using modulo arithmetic. For example, day 30 maps to cycle
-            day 2.
+        cycle_day : int
+            Day within the 28-day cycle (1-28). Values outside this range
+            will be wrapped using modulo arithmetic.
 
         Returns
         -------
@@ -70,16 +69,20 @@ class SyntheticDataGenerator:
         Examples
         --------
         >>> sdg = SyntheticDataGenerator(seed=42)
-        >>> sdg._get_cycle_phase(0)   # First day
+        >>> sdg._get_cycle_phase(1)   # First day
         'menstrual'
         >>> sdg._get_cycle_phase(10)  # Follicular phase
         'follicular'
         >>> sdg._get_cycle_phase(14)  # Ovulation
         'ovulatory'
-        >>> sdg._get_cycle_phase(29)  # Wraps to day 2
+        >>> sdg._get_cycle_phase(20)  # Luteal phase
+        'luteal'
+        >>> sdg._get_cycle_phase(29)  # Wraps to day 1
         'menstrual'
         """
-        cycle_day = ((day - 1) % 28) + 1
+        # Wrap cycle day to 1-28 range
+        cycle_day = ((cycle_day - 1) % 28) + 1
+
         for phase, (start, end) in self.CYCLE_PHASES.items():
             if start <= cycle_day <= end:
                 return phase
@@ -283,7 +286,9 @@ class SyntheticDataGenerator:
         data = []
 
         for day_idx, date in enumerate(dates):
-            phase = self._get_cycle_phase(day_idx)
+            # Calculate cycle day first
+            cycle_day = ((day_idx) % 28) + 1
+            phase = self._get_cycle_phase(cycle_day)
             mods = self._generate_cycle_modifiers(phase)
 
             # Base values with noise
@@ -322,7 +327,7 @@ class SyntheticDataGenerator:
                     "active_minutes": active_minutes,
                     "calories_burned": calories_burned,
                     "training_load": round(training_load, 1),
-                    "cycle_day": ((day_idx) % 28) + 1,
+                    "cycle_day": cycle_day,
                     "cycle_phase": phase,
                 }
             )
@@ -429,27 +434,22 @@ class SyntheticDataGenerator:
         data = []
 
         for day_idx, date in enumerate(dates):
-            phase = self._get_cycle_phase(day_idx)
+            # Calculate cycle day first
+            cycle_day = ((day_idx) % 28) + 1
+            phase = self._get_cycle_phase(cycle_day)
             mods = self._generate_cycle_modifiers(phase)
 
             # Scale modifiers to 1-10 scale
-            energy_level = max(
-                1, min(10, 6 + mods["energy"] * 10 + self.rng.normal(0, 1))
-            )
+            energy_level = max(1, min(10, 6 + mods["energy"] * 10 + self.rng.normal(0, 1)))
             mood_score = max(1, min(10, 7 + mods["mood"] * 10 + self.rng.normal(0, 1)))
-            pain_level = max(
-                0, min(10, 2 + mods["pain"] * 10 + self.rng.normal(0, 1.5))
-            )
+            pain_level = max(0, min(10, 2 + mods["pain"] * 10 + self.rng.normal(0, 1.5)))
 
             # Other symptoms influenced by cycle phase
             bloating = max(0, min(10, 3 + (mods["pain"] * 8) + self.rng.normal(0, 1.5)))
-            breast_tenderness = max(
-                0, min(10, 2 + (mods["pain"] * 7) + self.rng.normal(0, 1.5))
-            )
+            breast_tenderness = max(0, min(10, 2 + (mods["pain"] * 7) + self.rng.normal(0, 1.5)))
 
-            # Track if currently menstruating
-            cycle_day = ((day_idx) % 28) + 1
-            is_menstruating = 1 <= cycle_day <= 5
+            # Track if currently menstruating (only during menstrual phase)
+            is_menstruating = phase == "menstrual"
             flow_level = 0
             if is_menstruating:
                 # Flow typically peaks around day 2-3
@@ -576,8 +576,6 @@ class SyntheticDataGenerator:
         symptom_df = self.generate_symptom_data(n_days, start_date)
 
         # Merge on date
-        combined_df = pd.merge(
-            wearable_df, symptom_df, on=["date", "cycle_day", "cycle_phase"]
-        )
+        combined_df = pd.merge(wearable_df, symptom_df, on=["date", "cycle_day", "cycle_phase"])
 
         return combined_df

@@ -4,7 +4,6 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict
 import pandas as pd
-import numpy as np
 from datetime import datetime
 
 from astridml.dpm import DataPreprocessor
@@ -81,21 +80,13 @@ recommender = RecommendationEngine()
 @app.get("/", response_model=HealthStatus)
 async def root():
     """Root endpoint returning API status."""
-    return {
-        "status": "healthy",
-        "version": "0.1.0",
-        "timestamp": datetime.now().isoformat(),
-    }
+    return {"status": "healthy", "version": "0.1.0", "timestamp": datetime.now().isoformat()}
 
 
 @app.get("/health", response_model=HealthStatus)
 async def health_check():
     """Health check endpoint."""
-    return {
-        "status": "healthy",
-        "version": "0.1.0",
-        "timestamp": datetime.now().isoformat(),
-    }
+    return {"status": "healthy", "version": "0.1.0", "timestamp": datetime.now().isoformat()}
 
 
 @app.post("/data/ingest")
@@ -108,33 +99,28 @@ async def ingest_data(data: CombinedDataInput) -> Dict:
     """
     try:
         # Convert to DataFrames
-        wearable_df = pd.DataFrame([item.dict() for item in data.wearable_data])
-        symptom_df = pd.DataFrame([item.dict() for item in data.symptom_data])
+        wearable_df = pd.DataFrame([item.model_dump() for item in data.wearable_data])
+        symptom_df = pd.DataFrame([item.model_dump() for item in data.symptom_data])
 
         # Merge data
         combined_df = pd.merge(
-            wearable_df,
-            symptom_df,
-            on=["date", "cycle_day", "cycle_phase"],
-            how="inner",
+            wearable_df, symptom_df, on=["date", "cycle_day", "cycle_phase"], how="inner"
         )
 
         if combined_df.empty:
             raise HTTPException(
-                status_code=400,
-                detail="No matching dates between wearable and symptom data",
+                status_code=400, detail="No matching dates between wearable and symptom data"
             )
 
         return {
             "status": "success",
             "records_processed": len(combined_df),
-            "date_range": {
-                "start": combined_df["date"].min(),
-                "end": combined_df["date"].max(),
-            },
+            "date_range": {"start": combined_df["date"].min(), "end": combined_df["date"].max()},
             "timestamp": datetime.now().isoformat(),
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -149,21 +135,17 @@ async def predict(data: CombinedDataInput):
     """
     try:
         # Convert to DataFrames
-        wearable_df = pd.DataFrame([item.dict() for item in data.wearable_data])
-        symptom_df = pd.DataFrame([item.dict() for item in data.symptom_data])
+        wearable_df = pd.DataFrame([item.model_dump() for item in data.wearable_data])
+        symptom_df = pd.DataFrame([item.model_dump() for item in data.symptom_data])
 
         # Merge data
         combined_df = pd.merge(
-            wearable_df,
-            symptom_df,
-            on=["date", "cycle_day", "cycle_phase"],
-            how="inner",
+            wearable_df, symptom_df, on=["date", "cycle_day", "cycle_phase"], how="inner"
         )
 
         if combined_df.empty:
             raise HTTPException(
-                status_code=400,
-                detail="No matching dates between wearable and symptom data",
+                status_code=400, detail="No matching dates between wearable and symptom data"
             )
 
         # Get current state (most recent record)
@@ -173,27 +155,28 @@ async def predict(data: CombinedDataInput):
         # Make predictions if model is available
         predictions_dict = {}
         if predictor is not None and predictor.model is not None:
-            # Preprocess data
-            X, _, _ = preprocessor.fit_transform(combined_df)
+            # Use the global preprocessor that was fitted during training
+            # The preprocessor now handles different cycle phases consistently
+            if not preprocessor.is_fitted:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Model has not been trained yet. Please train the model first.",
+                )
+
+            X, _ = preprocessor.transform(combined_df)
 
             # Predict on most recent data
             pred = predictor.predict(X[-1:])
 
             predictions_dict = {
                 "energy_level": (
-                    float(pred[0][0])
-                    if pred.shape[1] > 0
-                    else current_state["energy_level"]
+                    float(pred[0][0]) if pred.shape[1] > 0 else current_state["energy_level"]
                 ),
                 "mood_score": (
-                    float(pred[0][1])
-                    if pred.shape[1] > 1
-                    else current_state["mood_score"]
+                    float(pred[0][1]) if pred.shape[1] > 1 else current_state["mood_score"]
                 ),
                 "pain_level": (
-                    float(pred[0][2])
-                    if pred.shape[1] > 2
-                    else current_state["pain_level"]
+                    float(pred[0][2]) if pred.shape[1] > 2 else current_state["pain_level"]
                 ),
             }
         else:
@@ -205,9 +188,7 @@ async def predict(data: CombinedDataInput):
             }
 
         # Generate recommendations
-        recommendations = recommender.generate_recommendations(
-            current_state, predictions_dict
-        )
+        recommendations = recommender.generate_recommendations(current_state, predictions_dict)
 
         return {
             "predictions": predictions_dict,
@@ -215,6 +196,8 @@ async def predict(data: CombinedDataInput):
             "timestamp": datetime.now().isoformat(),
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -231,15 +214,12 @@ async def train_model(data: CombinedDataInput) -> Dict:
 
     try:
         # Convert to DataFrames
-        wearable_df = pd.DataFrame([item.dict() for item in data.wearable_data])
-        symptom_df = pd.DataFrame([item.dict() for item in data.symptom_data])
+        wearable_df = pd.DataFrame([item.model_dump() for item in data.wearable_data])
+        symptom_df = pd.DataFrame([item.model_dump() for item in data.symptom_data])
 
         # Merge data
         combined_df = pd.merge(
-            wearable_df,
-            symptom_df,
-            on=["date", "cycle_day", "cycle_phase"],
-            how="inner",
+            wearable_df, symptom_df, on=["date", "cycle_day", "cycle_phase"], how="inner"
         )
 
         if len(combined_df) < 30:
@@ -268,6 +248,8 @@ async def train_model(data: CombinedDataInput) -> Dict:
             "timestamp": datetime.now().isoformat(),
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

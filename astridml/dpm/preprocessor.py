@@ -120,9 +120,7 @@ class DataPreprocessor:
 
         for col in rolling_cols:
             if col in df.columns:
-                df[f"{col}_rolling_7d"] = (
-                    df[col].rolling(window=8, min_periods=1).mean()
-                )
+                df[f"{col}_rolling_7d"] = df[col].rolling(window=8, min_periods=1).mean()
                 df[f"{col}_rolling_7d_std"] = (
                     df[col].rolling(window=8, min_periods=1).std().fillna(0)
                 )
@@ -144,13 +142,8 @@ class DataPreprocessor:
         if "sleep_hours" in df.columns and "training_load" in df.columns:
             df["recovery_ratio"] = df["sleep_hours"] / (df["training_load"] + 1)
 
-        if (
-            "heart_rate_variability" in df.columns
-            and "resting_heart_rate" in df.columns
-        ):
-            df["hrv_rhr_ratio"] = (
-                df["heart_rate_variability"] / df["resting_heart_rate"]
-            )
+        if "heart_rate_variability" in df.columns and "resting_heart_rate" in df.columns:
+            df["hrv_rhr_ratio"] = df["heart_rate_variability"] / df["resting_heart_rate"]
 
         # Cycle phase encoding (one-hot)
         # Always create all 4 phase columns for consistency
@@ -162,9 +155,7 @@ class DataPreprocessor:
                 if col_name not in phase_dummies.columns:
                     phase_dummies[col_name] = 0
             # Sort columns to ensure consistent order
-            phase_cols = sorted(
-                [col for col in phase_dummies.columns if col.startswith("phase_")]
-            )
+            phase_cols = sorted([col for col in phase_dummies.columns if col.startswith("phase_")])
             phase_dummies = phase_dummies[phase_cols]
             df = pd.concat([df, phase_dummies], axis=1)
 
@@ -201,11 +192,7 @@ class DataPreprocessor:
         X = df[feature_cols].values
         y = None
         if target_cols:
-            y = (
-                df[target_cols].values
-                if len(target_cols) > 1
-                else df[target_cols[0]].values
-            )
+            y = df[target_cols].values if len(target_cols) > 1 else df[target_cols[0]].values
 
         return X, y, feature_cols
 
@@ -277,11 +264,7 @@ class DataPreprocessor:
         # Extract targets if specified
         y = None
         if target_cols:
-            y = (
-                df[target_cols].values
-                if len(target_cols) > 1
-                else df[target_cols[0]].values
-            )
+            y = df[target_cols].values if len(target_cols) > 1 else df[target_cols[0]].values
 
         # Transform using fitted scaler
         X_scaled = self.scaler.transform(X)

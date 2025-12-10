@@ -206,20 +206,14 @@ class RecommendationEngine:
 
         # Recovery recommendations
         if pain_state == "high_pain":
-            recommendations["recovery"].extend(
-                self.RECOVERY_RECOMMENDATIONS["high_pain"]
-            )
+            recommendations["recovery"].extend(self.RECOVERY_RECOMMENDATIONS["high_pain"])
 
         if energy_state == "low_energy":
-            recommendations["recovery"].extend(
-                self.RECOVERY_RECOMMENDATIONS["low_energy"]
-            )
+            recommendations["recovery"].extend(self.RECOVERY_RECOMMENDATIONS["low_energy"])
 
         sleep_state = self._assess_sleep_quality(sleep_score)
         if sleep_state == "poor_sleep":
-            recommendations["recovery"].extend(
-                self.RECOVERY_RECOMMENDATIONS["poor_sleep"]
-            )
+            recommendations["recovery"].extend(self.RECOVERY_RECOMMENDATIONS["poor_sleep"])
 
         hrv_state = self._assess_hrv(hrv, hrv_avg)
         if hrv_state in self.RECOVERY_RECOMMENDATIONS:
@@ -227,9 +221,7 @@ class RecommendationEngine:
 
         # Performance recommendations based on cycle phase
         if cycle_phase in self.PERFORMANCE_RECOMMENDATIONS:
-            recommendations["performance"].extend(
-                self.PERFORMANCE_RECOMMENDATIONS[cycle_phase]
-            )
+            recommendations["performance"].extend(self.PERFORMANCE_RECOMMENDATIONS[cycle_phase])
 
         # Add prediction-based recommendations if available
         if predictions:
