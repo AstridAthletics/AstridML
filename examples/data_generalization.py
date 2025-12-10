@@ -21,7 +21,9 @@ def main():
 
     # Example 1: Generate wearable data only
     print("\n[Example 1] Generating wearable device data...")
-    wearable_data = sdg.generate_wearable_data(n_days=30, start_date=datetime(2024, 1, 1))
+    wearable_data = sdg.generate_wearable_data(
+        n_days=30, start_date=datetime(2024, 1, 1)
+    )
     print(f"Generated {len(wearable_data)} days of wearable data")
     print("\nFirst 5 rows:")
     print(wearable_data.head())
@@ -39,7 +41,9 @@ def main():
     # Example 3: Generate combined data
     print("\n" + "-" * 70)
     print("\n[Example 3] Generating combined data...")
-    combined_data = sdg.generate_combined_data(n_days=90, start_date=datetime(2024, 1, 1))
+    combined_data = sdg.generate_combined_data(
+        n_days=90, start_date=datetime(2024, 1, 1)
+    )
     print(f"Generated {len(combined_data)} days of combined data")
     print("\nFirst 3 rows:")
     print(combined_data.head(3))

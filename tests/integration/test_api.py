@@ -108,7 +108,10 @@ class TestAPIEndpoints:
 
     def test_ingest_data_invalid_format(self, client):
         """Test data ingestion with invalid format."""
-        invalid_data = {"wearable_data": [{"foo": "bar"}], "symptom_data": [{"baz": "qux"}]}
+        invalid_data = {
+            "wearable_data": [{"foo": "bar"}],
+            "symptom_data": [{"baz": "qux"}],
+        }
 
         response = client.post("/data/ingest", json=invalid_data)
         assert response.status_code == 422  # Validation error
@@ -274,7 +277,9 @@ class TestAPIEndpoints:
                         {
                             "date": row["date"],
                             "resting_heart_rate": float(row["resting_heart_rate"]),
-                            "heart_rate_variability": float(row["heart_rate_variability"]),
+                            "heart_rate_variability": float(
+                                row["heart_rate_variability"]
+                            ),
                             "sleep_hours": float(row["sleep_hours"]),
                             "sleep_quality_score": float(row["sleep_quality_score"]),
                             "steps": int(row["steps"]),

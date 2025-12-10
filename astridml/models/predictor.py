@@ -49,14 +49,19 @@ class SymptomPredictor:
             raise ValueError("input_dim must be specified before building model")
 
         model = keras.Sequential(
-            [keras.layers.Input(shape=(self.input_dim,)), keras.layers.BatchNormalization()]
+            [
+                keras.layers.Input(shape=(self.input_dim,)),
+                keras.layers.BatchNormalization(),
+            ]
         )
 
         # Add hidden layers with dropout
         for units in self.hidden_layers:
             model.add(
                 keras.layers.Dense(
-                    units, activation="relu", kernel_regularizer=keras.regularizers.l2(0.01)
+                    units,
+                    activation="relu",
+                    kernel_regularizer=keras.regularizers.l2(0.01),
                 )
             )
             model.add(keras.layers.Dropout(self.dropout_rate))
@@ -66,7 +71,9 @@ class SymptomPredictor:
 
         # Compile model
         model.compile(
-            optimizer=keras.optimizers.Adam(learning_rate=0.001), loss="mse", metrics=["mae", "mse"]
+            optimizer=keras.optimizers.Adam(learning_rate=0.001),
+            loss="mse",
+            metrics=["mae", "mse"],
         )
 
         self.model = model
@@ -119,7 +126,9 @@ class SymptomPredictor:
             ),
         ]
 
-        validation_data = (X_val, y_val) if X_val is not None and y_val is not None else None
+        validation_data = (
+            (X_val, y_val) if X_val is not None and y_val is not None else None
+        )
 
         history = self.model.fit(
             X_train,

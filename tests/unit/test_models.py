@@ -34,7 +34,9 @@ class TestSymptomPredictor:
 
     def test_initialization_with_custom_params(self):
         """Test predictor initialization with custom parameters."""
-        predictor = SymptomPredictor(input_dim=50, hidden_layers=[64, 32], dropout_rate=0.2)
+        predictor = SymptomPredictor(
+            input_dim=50, hidden_layers=[64, 32], dropout_rate=0.2
+        )
         assert predictor.hidden_layers == [64, 32]
         assert predictor.dropout_rate == 0.2
 
@@ -265,7 +267,10 @@ class TestRecommendationEngine:
 
         # Should recommend high-intensity training
         performance_text = " ".join(recommendations["performance"])
-        assert "high-intensity" in performance_text.lower() or "intense" in performance_text.lower()
+        assert (
+            "high-intensity" in performance_text.lower()
+            or "intense" in performance_text.lower()
+        )
 
     def test_generate_recommendations_with_predictions(self, recommender):
         """Test recommendations with prediction data."""
@@ -279,13 +284,21 @@ class TestRecommendationEngine:
             "heart_rate_variability_rolling_7d": 65,
         }
 
-        predictions = {"energy_level": 3, "mood_score": 5, "pain_level": 4}  # Predicted low energy
+        predictions = {
+            "energy_level": 3,
+            "mood_score": 5,
+            "pain_level": 4,
+        }  # Predicted low energy
 
-        recommendations = recommender.generate_recommendations(current_data, predictions)
+        recommendations = recommender.generate_recommendations(
+            current_data, predictions
+        )
 
         # Should mention predicted low energy
         recovery_text = " ".join(recommendations["recovery"])
-        assert "predicted" in recovery_text.lower() or "tomorrow" in recovery_text.lower()
+        assert (
+            "predicted" in recovery_text.lower() or "tomorrow" in recovery_text.lower()
+        )
 
     def test_generate_recommendations_all_phases(self, recommender):
         """Test that recommendations work for all cycle phases."""
