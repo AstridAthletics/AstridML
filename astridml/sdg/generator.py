@@ -16,10 +16,10 @@ class SyntheticDataGenerator:
 
     # Menstrual cycle phases (typical 28-day cycle)
     CYCLE_PHASES = {
-        'menstrual': (1, 5),      # Days 1-5
-        'follicular': (6, 13),     # Days 6-13
-        'ovulatory': (14, 16),     # Days 14-16
-        'luteal': (17, 28)         # Days 17-28
+        "menstrual": (1, 5),  # Days 1-5
+        "follicular": (6, 13),  # Days 6-13
+        "ovulatory": (14, 16),  # Days 14-16
+        "luteal": (17, 28),  # Days 17-28
     }
 
     def __init__(self, seed: Optional[int] = None):
@@ -83,7 +83,7 @@ class SyntheticDataGenerator:
         for phase, (start, end) in self.CYCLE_PHASES.items():
             if start <= cycle_day <= end:
                 return phase
-        return 'luteal'
+        return "luteal"
 
     def _generate_cycle_modifiers(self, phase: str) -> dict:
         """
@@ -154,45 +154,43 @@ class SyntheticDataGenerator:
         0.1
         """
         modifiers = {
-            'menstrual': {
-                'energy': -0.15,
-                'pain': 0.25,
-                'mood': -0.10,
-                'sleep_quality': -0.10,
-                'resting_hr': 0.02,
-                'performance': -0.08
+            "menstrual": {
+                "energy": -0.15,
+                "pain": 0.25,
+                "mood": -0.10,
+                "sleep_quality": -0.10,
+                "resting_hr": 0.02,
+                "performance": -0.08,
             },
-            'follicular': {
-                'energy': 0.10,
-                'pain': -0.20,
-                'mood': 0.15,
-                'sleep_quality': 0.05,
-                'resting_hr': -0.03,
-                'performance': 0.12
+            "follicular": {
+                "energy": 0.10,
+                "pain": -0.20,
+                "mood": 0.15,
+                "sleep_quality": 0.05,
+                "resting_hr": -0.03,
+                "performance": 0.12,
             },
-            'ovulatory': {
-                'energy': 0.15,
-                'pain': -0.15,
-                'mood': 0.10,
-                'sleep_quality': 0.02,
-                'resting_hr': 0.01,
-                'performance': 0.10
+            "ovulatory": {
+                "energy": 0.15,
+                "pain": -0.15,
+                "mood": 0.10,
+                "sleep_quality": 0.02,
+                "resting_hr": 0.01,
+                "performance": 0.10,
             },
-            'luteal': {
-                'energy': -0.10,
-                'pain': 0.10,
-                'mood': -0.15,
-                'sleep_quality': -0.08,
-                'resting_hr': 0.04,
-                'performance': -0.05
-            }
+            "luteal": {
+                "energy": -0.10,
+                "pain": 0.10,
+                "mood": -0.15,
+                "sleep_quality": -0.08,
+                "resting_hr": 0.04,
+                "performance": -0.05,
+            },
         }
         return modifiers[phase]
 
     def generate_wearable_data(
-        self,
-        n_days: int = 90,
-        start_date: Optional[datetime] = None
+        self, n_days: int = 90, start_date: Optional[datetime] = None
     ) -> pd.DataFrame:
         """
         Generate synthetic wearable device data with cycle-correlated metrics.
@@ -296,39 +294,43 @@ class SyntheticDataGenerator:
             base_calories = 2000 + self.rng.normal(0, 200)
 
             # Apply cycle phase modifiers
-            resting_hr = base_resting_hr * (1 + mods['resting_hr'])
-            hrv = base_hrv * (1 + mods['performance'] * 0.5)
-            sleep_hours = base_sleep_hours * (1 + mods['sleep_quality'])
-            sleep_quality = max(0, min(100, 75 + mods['sleep_quality'] * 100 + self.rng.normal(0, 10)))
-            steps = int(base_steps * (1 + mods['energy'] * 0.5))
-            active_minutes = int(45 + mods['energy'] * 30 + self.rng.normal(0, 10))
-            calories_burned = int(base_calories * (1 + mods['performance'] * 0.3))
+            resting_hr = base_resting_hr * (1 + mods["resting_hr"])
+            hrv = base_hrv * (1 + mods["performance"] * 0.5)
+            sleep_hours = base_sleep_hours * (1 + mods["sleep_quality"])
+            sleep_quality = max(
+                0, min(100, 75 + mods["sleep_quality"] * 100 + self.rng.normal(0, 10))
+            )
+            steps = int(base_steps * (1 + mods["energy"] * 0.5))
+            active_minutes = int(45 + mods["energy"] * 30 + self.rng.normal(0, 10))
+            calories_burned = int(base_calories * (1 + mods["performance"] * 0.3))
 
             # Training load (varies by day of week and energy)
             is_weekend = date.weekday() >= 5
-            training_load = (40 if is_weekend else 60) * (1 + mods['performance']) + self.rng.normal(0, 10)
+            training_load = (40 if is_weekend else 60) * (
+                1 + mods["performance"]
+            ) + self.rng.normal(0, 10)
             training_load = max(0, training_load)
 
-            data.append({
-                'date': date.strftime('%Y-%m-%d'),
-                'resting_heart_rate': round(resting_hr, 1),
-                'heart_rate_variability': round(hrv, 1),
-                'sleep_hours': round(sleep_hours, 2),
-                'sleep_quality_score': round(sleep_quality, 1),
-                'steps': steps,
-                'active_minutes': active_minutes,
-                'calories_burned': calories_burned,
-                'training_load': round(training_load, 1),
-                'cycle_day': ((day_idx) % 28) + 1,
-                'cycle_phase': phase
-            })
+            data.append(
+                {
+                    "date": date.strftime("%Y-%m-%d"),
+                    "resting_heart_rate": round(resting_hr, 1),
+                    "heart_rate_variability": round(hrv, 1),
+                    "sleep_hours": round(sleep_hours, 2),
+                    "sleep_quality_score": round(sleep_quality, 1),
+                    "steps": steps,
+                    "active_minutes": active_minutes,
+                    "calories_burned": calories_burned,
+                    "training_load": round(training_load, 1),
+                    "cycle_day": ((day_idx) % 28) + 1,
+                    "cycle_phase": phase,
+                }
+            )
 
         return pd.DataFrame(data)
 
     def generate_symptom_data(
-        self,
-        n_days: int = 90,
-        start_date: Optional[datetime] = None
+        self, n_days: int = 90, start_date: Optional[datetime] = None
     ) -> pd.DataFrame:
         """
         Generate synthetic menstrual cycle symptom data.
@@ -431,13 +433,19 @@ class SyntheticDataGenerator:
             mods = self._generate_cycle_modifiers(phase)
 
             # Scale modifiers to 1-10 scale
-            energy_level = max(1, min(10, 6 + mods['energy'] * 10 + self.rng.normal(0, 1)))
-            mood_score = max(1, min(10, 7 + mods['mood'] * 10 + self.rng.normal(0, 1)))
-            pain_level = max(0, min(10, 2 + mods['pain'] * 10 + self.rng.normal(0, 1.5)))
+            energy_level = max(
+                1, min(10, 6 + mods["energy"] * 10 + self.rng.normal(0, 1))
+            )
+            mood_score = max(1, min(10, 7 + mods["mood"] * 10 + self.rng.normal(0, 1)))
+            pain_level = max(
+                0, min(10, 2 + mods["pain"] * 10 + self.rng.normal(0, 1.5))
+            )
 
             # Other symptoms influenced by cycle phase
-            bloating = max(0, min(10, 3 + (mods['pain'] * 8) + self.rng.normal(0, 1.5)))
-            breast_tenderness = max(0, min(10, 2 + (mods['pain'] * 7) + self.rng.normal(0, 1.5)))
+            bloating = max(0, min(10, 3 + (mods["pain"] * 8) + self.rng.normal(0, 1.5)))
+            breast_tenderness = max(
+                0, min(10, 2 + (mods["pain"] * 7) + self.rng.normal(0, 1.5))
+            )
 
             # Track if currently menstruating
             cycle_day = ((day_idx) % 28) + 1
@@ -452,25 +460,25 @@ class SyntheticDataGenerator:
                 else:
                     flow_level = self.rng.choice([1, 2], p=[0.7, 0.3])
 
-            data.append({
-                'date': date.strftime('%Y-%m-%d'),
-                'cycle_day': cycle_day,
-                'cycle_phase': phase,
-                'is_menstruating': is_menstruating,
-                'flow_level': flow_level,
-                'energy_level': round(energy_level, 1),
-                'mood_score': round(mood_score, 1),
-                'pain_level': round(pain_level, 1),
-                'bloating': round(bloating, 1),
-                'breast_tenderness': round(breast_tenderness, 1),
-            })
+            data.append(
+                {
+                    "date": date.strftime("%Y-%m-%d"),
+                    "cycle_day": cycle_day,
+                    "cycle_phase": phase,
+                    "is_menstruating": is_menstruating,
+                    "flow_level": flow_level,
+                    "energy_level": round(energy_level, 1),
+                    "mood_score": round(mood_score, 1),
+                    "pain_level": round(pain_level, 1),
+                    "bloating": round(bloating, 1),
+                    "breast_tenderness": round(breast_tenderness, 1),
+                }
+            )
 
         return pd.DataFrame(data)
 
     def generate_combined_data(
-        self,
-        n_days: int = 90,
-        start_date: Optional[datetime] = None
+        self, n_days: int = 90, start_date: Optional[datetime] = None
     ) -> pd.DataFrame:
         """
         Generate combined wearable and symptom data in a single DataFrame.
@@ -568,6 +576,8 @@ class SyntheticDataGenerator:
         symptom_df = self.generate_symptom_data(n_days, start_date)
 
         # Merge on date
-        combined_df = pd.merge(wearable_df, symptom_df, on=['date', 'cycle_day', 'cycle_phase'])
+        combined_df = pd.merge(
+            wearable_df, symptom_df, on=["date", "cycle_day", "cycle_phase"]
+        )
 
         return combined_df

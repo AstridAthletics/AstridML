@@ -2,4 +2,4 @@
 
 from astridml.sdg.generator import SyntheticDataGenerator
 
-__all__ = ['SyntheticDataGenerator']
+__all__ = ["SyntheticDataGenerator"]
